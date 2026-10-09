@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toko Alat Tulis - Tugas 2</title>
+    <style>
+        body { font-family: monospace, sans-serif; padding: 2rem; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+        .box { border: 1px dashed #333; padding: 1rem; margin-bottom: 2rem; }
+        .flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dotted #ccc; padding: 0.5rem 0;}
+        button { cursor: pointer; padding: 2px 5px; }
+        ul { list-style: none; padding: 0; }
+        .text-right { text-align: right; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <div class="flex" style="border: none;">
+            <h2>Toko Alat Tulis</h2>
+            <strong id="badge-keranjang">[ Keranjang (0) ]</strong>
+        </div>
+        <h3>Daftar barang</h3>
+        <ul id="daftar-produk"></ul>
+    </div>
+
+    <div class="box">
+        <h3>Keranjang belanja (Tanpa login)</h3>
+        <ul id="isi-keranjang"></ul>
+        <div class="flex" style="border-top: 1px solid #333; margin-top: 1rem;">
+            <strong>Total</strong>
+            <strong id="total-harga">Rp 0</strong>
+        </div>
+        <div class="text-right" style="margin-top: 1rem;">
+            <button id="btn-kosongkan">[ Kosongkan keranjang ]</button>
+        </div>
+    </div>
+
+    <script>
+        const produk = [
+            { id: 1, nama: 'Buku Tulis', harga: 5000 },
+            { id: 2, nama: 'Pulpen', harga: 3000 },
+            { id: 3, nama: 'Penggaris', harga: 4000 },
+            { id: 4, nama: 'Pensil 2B', harga: 2500 },
+            { id: 5, nama: 'Penghapus', harga: 1500 }
+        ];
+
+        const KUNCI_LS = 'keranjang_tugas2';
+
+        function bacaKeranjang() {
+            try { return JSON.parse(localStorage.getItem(KUNCI_LS)) || []; } 
+            catch (e) { return []; }
+        }
+
+        function simpanKeranjang(data) {
+            localStorage.setItem(KUNCI_LS, JSON.stringify(data));
+            renderUI();
+        }
+
+        const rupiah = (angka) => 'Rp ' + angka.toLocaleString('id-ID');
+
+        function ubahJumlah(id, perubahan) {
+            let keranjang = bacaKeranjang();
+            const item = keranjang.find(i => i.id === id);
+            
+            if (item) {
+                item.jumlah += perubahan;
+                if (item.jumlah <= 0) keranjang = keranjang.filter(i => i.id !== id);
+            } else if (perubahan > 0) {
+                keranjang.push({ id: id, jumlah: 1 });
+            }
+            simpanKeranjang(keranjang);
+        }
+
+        function hapusItem(id) {
+            let keranjang = bacaKeranjang();
+            keranjang = keranjang.filter(i => i.id !== id);
+            simpanKeranjang(keranjang);
+        }
+
+        function renderProduk() {
+            const wadah = document.getElementById('daftar-produk');
+            wadah.innerHTML = '';
+            
+            produk.forEach(p => {
+                const li = document.createElement('li');
+                li.className = 'flex';
+                li.innerHTML = `
+                    <span>[img] ${p.nama} <br> <small>${rupiah(p.harga)}</small></span>
+                    <button onclick="ubahJumlah(${p.id}, 1)">[Masukkan ke krj]</button>
+                `;
+                wadah.appendChild(li);
+            });
+        }
+
+        function renderUI() {
+            const keranjang = bacaKeranjang();
+            const wadahKeranjang = document.getElementById('isi-keranjang');
+            let total = 0;
+            let totalItem = 0;
+
+            wadahKeranjang.innerHTML = '';
+
+            if (keranjang.length === 0) {
+                wadahKeranjang.innerHTML = '<li>Keranjang masih kosong.</li>';
+            } else {
+                keranjang.forEach(itemKrj => {
+                    // Cari data asli produk berdasarkan ID
+                    const p = produk.find(x => x.id === itemKrj.id);
+                    if (!p) return;
+
+                    const subtotal = p.harga * itemKrj.jumlah;
+                    total += subtotal;
+                    totalItem += itemKrj.jumlah;
+
+                    const li = document.createElement('li');
+                    li.className = 'flex';
+                    li.innerHTML = `
+                        <span>
+                            ${p.nama} <br> 
+                            <small>${rupiah(p.harga)} x ${itemKrj.jumlah} = <strong>${rupiah(subtotal)}</strong></small>
+                        </span>
+                        <div>
+                            <button onclick="ubahJumlah(${p.id}, -1)">[-]</button>
+                            <span>${itemKrj.jumlah}</span>
+                            <button onclick="ubahJumlah(${p.id}, 1)">[+]</button>
+                            <button onclick="hapusItem(${p.id})">[hps]</button>
+                        </div>
+                    `;
+                    wadahKeranjang.appendChild(li);
+                });
+            }
+
+            document.getElementById('total-harga').textContent = rupiah(total);
+            document.getElementById('badge-keranjang').textContent = `[ Keranjang (${totalItem}) ]`;
+        }
+
+        document.getElementById('btn-kosongkan').addEventListener('click', () => {
+            localStorage.removeItem(KUNCI_LS);
+            renderUI();
+        });
+
+        renderProduk();
+        renderUI();
+    </script>
+</body>
+</html>
