@@ -31,7 +31,8 @@ class AuthController extends Controller
     
     public function dashboard()
     {
-        return view('dashboard');
+        $users = User::all();
+        return view('dashboard', compact('users'));
     }
 
     public function logout(Request $request)

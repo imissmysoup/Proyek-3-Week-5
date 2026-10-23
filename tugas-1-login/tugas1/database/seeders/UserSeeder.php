@@ -2,27 +2,40 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        User::create([
-            'username' => 'agus',
-            'nama_lengkap' => 'Agus Tusan',
-            'password' => 'rahasia123'
-        ]);
-
-        User::create([
+        // 1. Akun Admin
+        $admin = new User([
             'username' => 'admin',
-            'nama_lengkap' => 'Administrator',
-            'password' => 'admin123'
+            'nama_lengkap' => 'Administrator Toko',
+            'password' => 'admin123',
         ]);
+        // Jika menggunakan proyek toko-online dengan primary key id_user string, tambahkan:
+        // $admin->id_user = 'USR-ADMIN'; $admin->email = 'admin@toko.com';
+        $admin->role = 'admin';
+        $admin->save();
+
+        // 2. Akun Customer (Budi)
+        $budi = new User([
+            'username' => 'budi',
+            'nama_lengkap' => 'Budi Daya',
+            'password' => 'rahasia123',
+        ]);
+        $budi->role = 'customer';
+        $budi->save();
+
+        // 3. Akun Staff (Siti)
+        $siti = new User([
+            'username' => 'siti',
+            'nama_lengkap' => 'Siti Staff Gudang',
+            'password' => 'rahasia123',
+        ]);
+        $siti->role = 'staff';
+        $siti->save();
     }
 }
